@@ -2,12 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifdef ENABLE_AVX2
-
 #include <stdint.h>
 #include <immintrin.h>
 
-#include <crypto/common.h>
+#include "common.h"
 
 namespace sha256d64_avx2 {
 namespace {
@@ -324,5 +322,3 @@ void Transform_8way(unsigned char* out, const unsigned char* in)
 }
 
 }
-
-#endif

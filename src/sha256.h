@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <string>
 
+#define USE_ASM
+#define ENABLE_AVX2
+
 /** A hasher class for SHA-256. */
 class CSHA256
 {
