@@ -32,6 +32,7 @@ uint32_t inline sigma1(uint32_t x) { return (x >> 17 | x << 15) ^ (x >> 19 | x <
 /** One round of SHA-256. */
 void inline Round(uint32_t a, uint32_t b, uint32_t c, uint32_t& d, uint32_t e, uint32_t f, uint32_t g, uint32_t& h, uint32_t k)
 {
+    std::cout << "sha256::Round" << std::endl;
     uint32_t t1 = h + Sigma1(e) + Ch(e, f, g) + k;
     uint32_t t2 = Sigma0(a) + Maj(a, b, c);
     d += t1;
@@ -41,6 +42,7 @@ void inline Round(uint32_t a, uint32_t b, uint32_t c, uint32_t& d, uint32_t e, u
 /** Initialize SHA-256 state. */
 void inline Initialize(uint32_t* s)
 {
+    std::cout << "sha256::Initialize" << std::endl;
     s[0] = 0x6a09e667ul;
     s[1] = 0xbb67ae85ul;
     s[2] = 0x3c6ef372ul;
@@ -140,6 +142,7 @@ void Transform(uint32_t* s, const unsigned char* chunk, size_t blocks)
 
 void TransformD64(unsigned char* out, const unsigned char* in)
 {
+    std::cout << "sha256::TransformD64" << std::endl;
     // Transform 1
     uint32_t a = 0x6a09e667ul;
     uint32_t b = 0xbb67ae85ul;
@@ -397,6 +400,7 @@ typedef void (*TransformD64Type)(unsigned char*, const unsigned char*);
 template<TransformType tr>
 void TransformD64Wrapper(unsigned char* out, const unsigned char* in)
 {
+    std::cout << "sha256::TransformD64Wrapper" << std::endl;
     uint32_t s[8];
     static const unsigned char padding1[64] = {
         0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -433,7 +437,8 @@ void TransformD64Wrapper(unsigned char* out, const unsigned char* in)
     WriteBE32(out + 28, s[7]);
 }
 
-TransformType Transform = sha256::Transform;
+// TransformType Transform = sha256::Transform;
+TransformType Transform = sha256d64_avx2::Transform_8way;
 TransformD64Type TransformD64 = sha256::TransformD64;
 TransformD64Type TransformD64_2way = nullptr;
 TransformD64Type TransformD64_4way = nullptr;
@@ -543,14 +548,12 @@ std::string SHA256AutoDetect()
     bool have_xsave = false;
     bool have_avx = false;
     bool have_avx2 = false;
-    bool have_shani = false;
     bool enabled_avx = false;
 
     (void)AVXEnabled;
     (void)have_avx;
     (void)have_xsave;
     (void)have_avx2;
-    (void)have_shani;
     (void)enabled_avx;
 
     uint32_t eax, ebx, ecx, edx;
@@ -566,7 +569,7 @@ std::string SHA256AutoDetect()
     ret += ",avx2(8way)";
 #endif
 
-    assert(SelfTest());
+    // assert(SelfTest());
     return ret;
 }
 
@@ -574,11 +577,13 @@ std::string SHA256AutoDetect()
 
 CSHA256::CSHA256() : bytes(0)
 {
+    std::cout << "CSHA256::ctor" << std::endl;
     sha256::Initialize(s);
 }
 
 CSHA256& CSHA256::Write(const unsigned char* data, size_t len)
 {
+    std::cout << "CSHA256::Write" << std::endl;
     const unsigned char* end = data + len;
     size_t bufsize = bytes % 64;
     if (bufsize && bufsize + len >= 64) {
@@ -605,6 +610,7 @@ CSHA256& CSHA256::Write(const unsigned char* data, size_t len)
 
 void CSHA256::Finalize(unsigned char hash[OUTPUT_SIZE])
 {
+    std::cout << "CSHA256::Finalize" << std::endl;
     static const unsigned char pad[64] = {0x80};
     unsigned char sizedesc[8];
     WriteBE64(sizedesc, bytes << 3);
@@ -622,6 +628,7 @@ void CSHA256::Finalize(unsigned char hash[OUTPUT_SIZE])
 
 CSHA256& CSHA256::Reset()
 {
+    std::cout << "CSHA256::Reset" << std::endl;
     bytes = 0;
     sha256::Initialize(s);
     return *this;
@@ -629,8 +636,10 @@ CSHA256& CSHA256::Reset()
 
 void SHA256D64(unsigned char* out, const unsigned char* in, size_t blocks)
 {
+    std::cout << "sha256::SHA256D64" << std::endl;
     if (TransformD64_8way) {
         while (blocks >= 8) {
+            std::cout << "TransformD64_8way" << std::endl;
             TransformD64_8way(out, in);
             out += 256;
             in += 512;
@@ -638,6 +647,7 @@ void SHA256D64(unsigned char* out, const unsigned char* in, size_t blocks)
         }
     }
     while (blocks) {
+        std::cout << "Calling TransformD64." << std::endl;
         TransformD64(out, in);
         out += 32;
         in += 64;

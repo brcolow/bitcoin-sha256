@@ -46,6 +46,7 @@ __m256i inline sigma1(__m256i x) { return Xor(Or(ShR(x, 17), ShL(x, 15)), Or(ShR
 /** One round of SHA-256. */
 void inline __attribute__((always_inline)) Round(__m256i a, __m256i b, __m256i c, __m256i& d, __m256i e, __m256i f, __m256i g, __m256i& h, __m256i k)
 {
+    std::cout << "sha256_avx2::Round" << std::endl;
     __m256i t1 = Add(h, Sigma1(e), Ch(e, f, g), k);
     __m256i t2 = Add(Sigma0(a), Maj(a, b, c));
     std::cout << "t1: ";
@@ -55,7 +56,8 @@ void inline __attribute__((always_inline)) Round(__m256i a, __m256i b, __m256i c
 }
 
 __m256i inline Read8(const unsigned char* chunk, int offset) {
-    std::cout << "Read8: " << ReadLE32(chunk + 0 + offset) << ", " << ReadLE32(chunk + 64 + offset) << ", " << ReadLE32(chunk + 128 + offset) << ", " << ReadLE32(chunk + 192 + offset) << ", " << ReadLE32(chunk + 256 + offset) << ", " << ReadLE32(chunk + 320 + offset) << ", " << ReadLE32(chunk + 384 + offset) << ", " << ReadLE32(chunk + 448 + offset) << std::endl;
+    std::cout << "sha256_avx2::Read8" << std::endl;
+    // std::cout << "Read8: " << ReadLE32(chunk + 0 + offset) << ", " << ReadLE32(chunk + 64 + offset) << ", " << ReadLE32(chunk + 128 + offset) << ", " << ReadLE32(chunk + 192 + offset) << ", " << ReadLE32(chunk + 256 + offset) << ", " << ReadLE32(chunk + 320 + offset) << ", " << ReadLE32(chunk + 384 + offset) << ", " << ReadLE32(chunk + 448 + offset) << std::endl;
     __m256i ret = _mm256_set_epi32(
         ReadLE32(chunk + 0 + offset),
         ReadLE32(chunk + 64 + offset),
@@ -67,11 +69,12 @@ __m256i inline Read8(const unsigned char* chunk, int offset) {
         ReadLE32(chunk + 448 + offset)
     );
     std::cout << "ret Read8: ";
-    Log<uint32_t>(ret);
+    // Log<uint32_t>(ret);
     return _mm256_shuffle_epi8(ret, _mm256_set_epi32(0x0C0D0E0FUL, 0x08090A0BUL, 0x04050607UL, 0x00010203UL, 0x0C0D0E0FUL, 0x08090A0BUL, 0x04050607UL, 0x00010203UL));
 }
 
 void inline Write8(unsigned char* out, int offset, __m256i v) {
+    std::cout << "sha256_avx2::Write8" << std::endl;
     v = _mm256_shuffle_epi8(v, _mm256_set_epi32(0x0C0D0E0FUL, 0x08090A0BUL, 0x04050607UL, 0x00010203UL, 0x0C0D0E0FUL, 0x08090A0BUL, 0x04050607UL, 0x00010203UL));
     WriteLE32(out + 0 + offset, _mm256_extract_epi32(v, 7));
     WriteLE32(out + 32 + offset, _mm256_extract_epi32(v, 6));
@@ -87,6 +90,7 @@ void inline Write8(unsigned char* out, int offset, __m256i v) {
 
 void Transform_8way(unsigned char* out, const unsigned char* in)
 {
+    std::cout << "sha256_avx2::Transform_8way" << std::endl;
     // Transform 1
     __m256i a = K(0x6a09e667ul);
     __m256i b = K(0xbb67ae85ul);
