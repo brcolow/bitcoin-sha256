@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <iostream>
 #include <stdint.h>
 #include <immintrin.h>
 
@@ -9,6 +10,15 @@
 
 namespace sha256d64_avx2 {
 namespace {
+
+template<class T> inline void Log(const __m256i & value)
+{
+    const size_t n = sizeof(__m256i) / sizeof(T);
+    T buffer[n];
+    _mm256_storeu_si256((__m256i*)buffer, value);
+    for (int i = 0; i < n; i++)
+        std::cout << buffer[i] << " ";
+}
 
 __m256i inline K(uint32_t x) { return _mm256_set1_epi32(x); }
 
@@ -38,11 +48,14 @@ void inline __attribute__((always_inline)) Round(__m256i a, __m256i b, __m256i c
 {
     __m256i t1 = Add(h, Sigma1(e), Ch(e, f, g), k);
     __m256i t2 = Add(Sigma0(a), Maj(a, b, c));
+    std::cout << "t1: ";
+    Log<int>(t1);
     d = Add(d, t1);
     h = Add(t1, t2);
 }
 
 __m256i inline Read8(const unsigned char* chunk, int offset) {
+    std::cout << "Read8: " << ReadLE32(chunk + 0 + offset) << ", " << ReadLE32(chunk + 64 + offset) << ", " << ReadLE32(chunk + 128 + offset) << ", " << ReadLE32(chunk + 192 + offset) << ", " << ReadLE32(chunk + 256 + offset) << ", " << ReadLE32(chunk + 320 + offset) << ", " << ReadLE32(chunk + 384 + offset) << ", " << ReadLE32(chunk + 448 + offset) << std::endl;
     __m256i ret = _mm256_set_epi32(
         ReadLE32(chunk + 0 + offset),
         ReadLE32(chunk + 64 + offset),
@@ -53,6 +66,8 @@ __m256i inline Read8(const unsigned char* chunk, int offset) {
         ReadLE32(chunk + 384 + offset),
         ReadLE32(chunk + 448 + offset)
     );
+    std::cout << "ret Read8: ";
+    Log<uint32_t>(ret);
     return _mm256_shuffle_epi8(ret, _mm256_set_epi32(0x0C0D0E0FUL, 0x08090A0BUL, 0x04050607UL, 0x00010203UL, 0x0C0D0E0FUL, 0x08090A0BUL, 0x04050607UL, 0x00010203UL));
 }
 

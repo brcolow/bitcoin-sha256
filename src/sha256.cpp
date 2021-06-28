@@ -5,6 +5,7 @@
 #include "sha256.h"
 #include "common.h"
 
+#include <iostream>
 #include <assert.h>
 #include <string.h>
 
@@ -538,7 +539,7 @@ bool AVXEnabled()
 std::string SHA256AutoDetect()
 {
     std::string ret = "standard";
-#if defined(USE_ASM) && defined(HAVE_GETCPUID)
+#if defined(USE_ASM)
     bool have_xsave = false;
     bool have_avx = false;
     bool have_avx2 = false;
@@ -560,10 +561,9 @@ std::string SHA256AutoDetect()
         enabled_avx = AVXEnabled();
     }
 
-    if (have_avx2 && have_avx && enabled_avx) {
-        TransformD64_8way = sha256d64_avx2::Transform_8way;
-        ret += ",avx2(8way)";
-    }
+    std::cout << "Using avx2 transform." << std::endl;
+    TransformD64_8way = sha256d64_avx2::Transform_8way;
+    ret += ",avx2(8way)";
 #endif
 
     assert(SelfTest());
@@ -635,22 +635,6 @@ void SHA256D64(unsigned char* out, const unsigned char* in, size_t blocks)
             out += 256;
             in += 512;
             blocks -= 8;
-        }
-    }
-    if (TransformD64_4way) {
-        while (blocks >= 4) {
-            TransformD64_4way(out, in);
-            out += 128;
-            in += 256;
-            blocks -= 4;
-        }
-    }
-    if (TransformD64_2way) {
-        while (blocks >= 2) {
-            TransformD64_2way(out, in);
-            out += 64;
-            in += 128;
-            blocks -= 2;
         }
     }
     while (blocks) {
