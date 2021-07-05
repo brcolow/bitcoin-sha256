@@ -437,12 +437,12 @@ void TransformD64Wrapper(unsigned char* out, const unsigned char* in)
     WriteBE32(out + 28, s[7]);
 }
 
-// TransformType Transform = sha256::Transform;
-TransformType Transform = sha256d64_avx2::Transform_8way;
+TransformType Transform = sha256::Transform;
+//TransformType Transform = sha256d64_avx2::Transform_8way;
 TransformD64Type TransformD64 = sha256::TransformD64;
 TransformD64Type TransformD64_2way = nullptr;
 TransformD64Type TransformD64_4way = nullptr;
-TransformD64Type TransformD64_8way = nullptr;
+TransformD64Type TransformD64_8way = sha256d64_avx2::Transform_8way;
 
 bool SelfTest() {
     // Input state (equal to the initial SHA256 state)

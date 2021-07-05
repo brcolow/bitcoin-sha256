@@ -49,15 +49,14 @@ void inline __attribute__((always_inline)) Round(__m256i a, __m256i b, __m256i c
     std::cout << "sha256_avx2::Round" << std::endl;
     __m256i t1 = Add(h, Sigma1(e), Ch(e, f, g), k);
     __m256i t2 = Add(Sigma0(a), Maj(a, b, c));
-    std::cout << "t1: ";
-    Log<int>(t1);
+    // std::cout << "t1: ";
+    // Log<int>(t1);
     d = Add(d, t1);
     h = Add(t1, t2);
 }
 
 __m256i inline Read8(const unsigned char* chunk, int offset) {
-    std::cout << "sha256_avx2::Read8" << std::endl;
-    // std::cout << "Read8: " << ReadLE32(chunk + 0 + offset) << ", " << ReadLE32(chunk + 64 + offset) << ", " << ReadLE32(chunk + 128 + offset) << ", " << ReadLE32(chunk + 192 + offset) << ", " << ReadLE32(chunk + 256 + offset) << ", " << ReadLE32(chunk + 320 + offset) << ", " << ReadLE32(chunk + 384 + offset) << ", " << ReadLE32(chunk + 448 + offset) << std::endl;
+    std::cout << "Read8: " << ReadLE32(chunk + 0 + offset) << ", " << ReadLE32(chunk + 64 + offset) << ", " << ReadLE32(chunk + 128 + offset) << ", " << ReadLE32(chunk + 192 + offset) << ", " << ReadLE32(chunk + 256 + offset) << ", " << ReadLE32(chunk + 320 + offset) << ", " << ReadLE32(chunk + 384 + offset) << ", " << ReadLE32(chunk + 448 + offset) << std::endl;
     __m256i ret = _mm256_set_epi32(
         ReadLE32(chunk + 0 + offset),
         ReadLE32(chunk + 64 + offset),
@@ -68,8 +67,6 @@ __m256i inline Read8(const unsigned char* chunk, int offset) {
         ReadLE32(chunk + 384 + offset),
         ReadLE32(chunk + 448 + offset)
     );
-    std::cout << "ret Read8: ";
-    // Log<uint32_t>(ret);
     return _mm256_shuffle_epi8(ret, _mm256_set_epi32(0x0C0D0E0FUL, 0x08090A0BUL, 0x04050607UL, 0x00010203UL, 0x0C0D0E0FUL, 0x08090A0BUL, 0x04050607UL, 0x00010203UL));
 }
 
@@ -103,7 +100,10 @@ void Transform_8way(unsigned char* out, const unsigned char* in)
 
     __m256i w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15;
 
-    Round(a, b, c, d, e, f, g, h, Add(K(0x428a2f98ul), w0 = Read8(in, 0)));
+    w0 = Read8(in, 0);
+    std::cout << "Read8(in, 0) shuffle: ";
+    Log<int>(w0);
+    Round(a, b, c, d, e, f, g, h, Add(K(0x428a2f98ul), w0));
     Round(h, a, b, c, d, e, f, g, Add(K(0x71374491ul), w1 = Read8(in, 4)));
     Round(g, h, a, b, c, d, e, f, Add(K(0xb5c0fbcful), w2 = Read8(in, 8)));
     Round(f, g, h, a, b, c, d, e, Add(K(0xe9b5dba5ul), w3 = Read8(in, 12)));
